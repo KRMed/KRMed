@@ -76,14 +76,14 @@ projects:
 # Theme color overrides (optional — defaults to deep space palette)
 # All values must be valid hex color codes (#RRGGBB)
 theme:
-  void: "#080c14"              # Darkest background
-  nebula: "#0f1623"            # Card backgrounds
-  star_dust: "#1a2332"         # Borders, dividers
-  synapse_cyan: "#00d4ff"      # Primary accent (arm color 1)
-  dendrite_violet: "#a78bfa"   # Secondary accent (arm color 2)
-  axon_amber: "#ffb020"        # Tertiary accent (arm color 3)
-  text_bright: "#f1f5f9"       # Primary text
-  text_dim: "#94a3b8"          # Secondary text
+  void: "#05070d"              # Darkest background
+  nebula: "#0b1120"            # Card backgrounds
+  star_dust: "#1e293b"         # Borders, dividers
+  synapse_cyan: "#00f5ff"      # Primary accent (arm color 1)
+  dendrite_violet: "#8b5cf6"   # Secondary accent (arm color 2)
+  axon_amber: "#ff9f1c"        # Tertiary accent (arm color 3)
+  text_bright: "#f8fafc"       # Primary text
+  text_dim: "#cbd5e1"          # Secondary text
   text_faint: "#64748b"        # Muted text, labels
 
 # Stats configuration — which metrics to show on the telemetry card
@@ -100,6 +100,7 @@ languages:
   exclude:                     # Languages to hide from the telemetry chart
     - "HTML"
     - "CSS"
+    - "CMake"
     - "Shell"
     - "Makefile"
   max_display: 9               # Maximum number of languages to show
