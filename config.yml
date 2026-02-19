@@ -38,8 +38,6 @@ galaxy_arms:
     items:
       - "TypeScript"
       - "JavaScript"
-      - "HTML"
-      - "CSS"
       - "Next.js"
       - "Tailwind"
       - "React"
