@@ -23,17 +23,6 @@ class TestSVGBuilder:
         svg = svg_builder.render_galaxy_header()
         assert "animate" in svg
 
-    def test_render_stats_card_valid_svg(self, svg_builder):
-        svg = svg_builder.render_stats_card()
-        assert svg.strip().startswith("<svg")
-        assert svg.strip().endswith("</svg>")
-
-    def test_stats_card_contains_formatted_values(self, svg_builder):
-        svg = svg_builder.render_stats_card()
-        assert "1.8k" in svg  # commits=1847
-        assert "342" in svg   # stars
-        assert "156" in svg   # prs
-
     def test_render_language_composition_valid_svg(self, svg_builder):
         svg = svg_builder.render_language_composition()
         assert svg.strip().startswith("<svg")
@@ -73,6 +62,6 @@ class TestEdgeCases:
         config = validate_config(cfg)
         zero_stats = {"commits": 0, "stars": 0, "prs": 0, "issues": 0, "repos": 0}
         builder = SVGBuilder(config, zero_stats, sample_languages)
-        svg = builder.render_stats_card()
+        svg = builder.render_language_composition()
         assert svg.strip().startswith("<svg")
         assert svg.strip().endswith("</svg>")
