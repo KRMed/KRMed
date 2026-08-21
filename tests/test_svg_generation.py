@@ -34,41 +34,39 @@ class TestSVGBuilder:
         assert "342" in svg   # stars
         assert "156" in svg   # prs
 
-    def test_render_tech_stack_valid_svg(self, svg_builder):
-        svg = svg_builder.render_tech_stack()
+    def test_render_language_composition_valid_svg(self, svg_builder):
+        svg = svg_builder.render_language_composition()
         assert svg.strip().startswith("<svg")
         assert svg.strip().endswith("</svg>")
 
-    def test_tech_stack_contains_language_names(self, svg_builder):
-        svg = svg_builder.render_tech_stack()
+    def test_language_composition_contains_language_names(self, svg_builder):
+        svg = svg_builder.render_language_composition()
         assert "Python" in svg
         assert "TypeScript" in svg
 
-    def test_render_projects_constellation_valid_svg(self, svg_builder):
-        svg = svg_builder.render_projects_constellation()
-        assert svg.strip().startswith("<svg")
-        assert svg.strip().endswith("</svg>")
-
-    def test_projects_constellation_contains_repo_names(self, svg_builder):
-        svg = svg_builder.render_projects_constellation()
-        assert "nebula-ui" in svg
-        assert "stargate-api" in svg
+    def test_language_composition_contains_activity_stats(self, svg_builder):
+        svg = svg_builder.render_language_composition()
+        assert "Commits" in svg
+        assert "PRs" in svg
+        assert "Repos" in svg
+        assert "Stars" in svg
+        assert "Issues" not in svg
 
 
 class TestEdgeCases:
-    def test_empty_projects(self, cfg, sample_stats, sample_languages):
-        cfg["projects"] = []
-        config = validate_config(cfg)
-        builder = SVGBuilder(config, sample_stats, sample_languages)
-        svg = builder.render_projects_constellation()
-        assert svg.strip().startswith("<svg")
-        assert svg.strip().endswith("</svg>")
-
     def test_empty_languages(self, cfg, sample_stats):
         config = validate_config(cfg)
         builder = SVGBuilder(config, sample_stats, {})
-        svg = builder.render_tech_stack()
+        svg = builder.render_language_composition()
         assert svg.strip().startswith("<svg")
+        assert svg.strip().endswith("</svg>")
+
+    def test_partial_last_row_is_balanced(self, cfg, sample_stats):
+        config = validate_config(cfg)
+        langs = {name: 100 for name in ("Python", "Go", "Rust", "Ruby", "Zig")}
+        builder = SVGBuilder(config, sample_stats, langs)
+        svg = builder.render_language_composition()
+        assert svg.count('rx="9"') == 5
         assert svg.strip().endswith("</svg>")
 
     def test_zero_stats(self, cfg, sample_languages):

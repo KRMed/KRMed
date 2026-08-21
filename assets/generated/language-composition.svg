@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="850" height="233" viewBox="0 0 850 233">
+  <defs>
+    <style>
+      .metric-icon {
+        animation: count-glow 4s ease-in-out infinite;
+      }
+      @keyframes count-glow {
+        0%, 100% { fill-opacity: 0.7; }
+        50% { fill-opacity: 1; }
+      }
+    </style>
+    <filter id="num-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+    <clipPath id="lang-bar-clip">
+      <rect x="30" y="59" width="790" height="12" rx="3" ry="3"/>
+    </clipPath>
+  </defs>
+
+  <!-- Card background -->
+  <rect x="0.5" y="0.5" width="849" height="232" rx="12" ry="12"
+        fill="#0b1120" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Section title -->
+  <text x="30" y="38" fill="#64748b" font-size="11" font-family="monospace" letter-spacing="3">MISSION TELEMETRY</text>
+
+  <!-- Band 1: stacked language bar -->
+    <g clip-path="url(#lang-bar-clip)">
+      <rect x="30.00" y="59" width="400.69" height="12" fill="#3572A5" opacity="0.85"/>
+      <rect x="433.69" y="59" width="179.49" height="12" fill="#f1e05a" opacity="0.85"/>
+      <rect x="616.18" y="59" width="119.45" height="12" fill="#3178c6" opacity="0.85"/>
+      <rect x="738.63" y="59" width="81.37" height="12" fill="#00ADD8" opacity="0.85"/>
+    </g>
+
+  <!-- Band 2: legend -->
+    <g>
+      <rect x="71.15" y="89" width="115.20" height="18" rx="9" ry="9" fill="#3572A5" opacity="0.12"/>
+      <rect x="79.15" y="94.00" width="12" height="8" rx="3" ry="3" fill="#3572A5"/>
+      <text x="99.15" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">Python</text>
+      <text x="145.35" y="101" fill="#64748b" font-size="11" font-family="monospace">51.1%</text>
+    </g>
+    <g>
+      <rect x="255.45" y="89" width="141.60" height="18" rx="9" ry="9" fill="#f1e05a" opacity="0.12"/>
+      <rect x="263.45" y="94.00" width="12" height="8" rx="3" ry="3" fill="#f1e05a"/>
+      <text x="283.45" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">JavaScript</text>
+      <text x="356.05" y="101" fill="#64748b" font-size="11" font-family="monospace">23.1%</text>
+    </g>
+    <g>
+      <rect x="452.95" y="89" width="141.60" height="18" rx="9" ry="9" fill="#3178c6" opacity="0.12"/>
+      <rect x="460.95" y="94.00" width="12" height="8" rx="3" ry="3" fill="#3178c6"/>
+      <text x="480.95" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">TypeScript</text>
+      <text x="553.55" y="101" fill="#64748b" font-size="11" font-family="monospace">15.5%</text>
+    </g>
+    <g>
+      <rect x="676.85" y="89" width="88.80" height="18" rx="9" ry="9" fill="#00ADD8" opacity="0.12"/>
+      <rect x="684.85" y="94.00" width="12" height="8" rx="3" ry="3" fill="#00ADD8"/>
+      <text x="704.85" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">Go</text>
+      <text x="724.65" y="101" fill="#64748b" font-size="11" font-family="monospace">10.3%</text>
+    </g>
+
+  <!-- Band 3: activity -->
+  <line x1="30" y1="125" x2="820" y2="125" stroke="#1e293b" stroke-width="1" opacity="0.5"/>
+    <g class="metric-cell" transform="translate(128.75, 183)">
+      <g transform="translate(-8, -40) scale(1)">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="#00f5ff" class="metric-icon" style="animation-delay: 0.0s">
+          <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 2.5a4.5 4.5 0 0 1 4.473 4H14.5a.5.5 0 0 1 0 1h-2.027A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1-4.473-4H1.5a.5.5 0 0 1 0-1h2.027A4.5 4.5 0 0 1 8 3.5zm0 1.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
+        </svg>
+      </g>
+      <text x="0" y="2" text-anchor="middle" fill="#00f5ff" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">554</text>
+      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">554</text>
+      <text x="0" y="20" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace" letter-spacing="1">Commits</text>
+    </g>
+    <g class="metric-cell" transform="translate(326.25, 183)">
+      <g transform="translate(-8, -40) scale(1)">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="#8b5cf6" class="metric-icon" style="animation-delay: 0.3s">
+          <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/>
+        </svg>
+      </g>
+      <text x="0" y="2" text-anchor="middle" fill="#8b5cf6" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">98</text>
+      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">98</text>
+      <text x="0" y="20" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace" letter-spacing="1">PRs</text>
+    </g>
+    <g class="metric-cell" transform="translate(523.75, 183)">
+      <g transform="translate(-8, -40) scale(1)">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="#8b5cf6" class="metric-icon" style="animation-delay: 0.6s">
+          <path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 0 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5zm10.5-1h-8a1 1 0 0 0-1 1v6.708A2.486 2.486 0 0 1 4.5 9h8zM5 12.25a.25.25 0 0 1 .25-.25h3.5a.25.25 0 0 1 .25.25v3.25a.25.25 0 0 1-.4.2l-1.45-1.087a.25.25 0 0 0-.3 0L5.4 15.7a.25.25 0 0 1-.4-.2z"/>
+        </svg>
+      </g>
+      <text x="0" y="2" text-anchor="middle" fill="#8b5cf6" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">17</text>
+      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">17</text>
+      <text x="0" y="20" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace" letter-spacing="1">Repos</text>
+    </g>
+    <g class="metric-cell" transform="translate(721.25, 183)">
+      <g transform="translate(-8, -40) scale(1)">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="#ff9f1c" class="metric-icon" style="animation-delay: 0.8999999999999999s">
+          <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25z"/>
+        </svg>
+      </g>
+      <text x="0" y="2" text-anchor="middle" fill="#ff9f1c" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">24</text>
+      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">24</text>
+      <text x="0" y="20" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace" letter-spacing="1">Stars</text>
+    </g>
+</svg>
