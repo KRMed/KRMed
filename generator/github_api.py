@@ -3,10 +3,14 @@
 import logging
 import os
 import time
+from datetime import datetime, timezone
 
 import requests
 
 logger = logging.getLogger(__name__)
+
+# A personal access token sees private contributions; the Actions GITHUB_TOKEN does not
+TOKEN_ENV_VARS = ("PROFILE_TOKEN", "GH_PAT", "GITHUB_TOKEN")
 
 
 class GitHubAPI:
@@ -17,10 +21,46 @@ class GitHubAPI:
 
     def __init__(self, username: str, token: str = None):
         self.username = username
-        self.token = token or os.environ.get("GITHUB_TOKEN", "")
+        self.token = token or self._token_from_env()
         self.headers = {"Accept": "application/vnd.github.v3+json"}
         if self.token:
             self.headers["Authorization"] = f"Bearer {self.token}"
+        self._viewer_login = None
+        self._viewer_checked = False
+
+    @staticmethod
+    def _token_from_env() -> str:
+        """Return the first token found, preferring a PAT over the Actions token."""
+        for name in TOKEN_ENV_VARS:
+            value = os.environ.get(name, "")
+            if value:
+                if name == "GITHUB_TOKEN":
+                    logger.warning(
+                        "Using GITHUB_TOKEN. It cannot read private contributions; "
+                        "set PROFILE_TOKEN to a PAT with repo + read:user for full stats."
+                    )
+                return value
+        return ""
+
+    def _authenticated_login(self) -> str:
+        """Return the login the token belongs to, or '' when unauthenticated."""
+        if self._viewer_checked:
+            return self._viewer_login or ""
+        self._viewer_checked = True
+        if not self.token:
+            return ""
+        try:
+            resp = self._request("GET", f"{self.REST_URL}/user")
+            if resp.status_code == 200:
+                self._viewer_login = resp.json().get("login", "")
+        except requests.exceptions.RequestException as e:
+            logger.warning("Could not identify token owner: %s", e)
+        return self._viewer_login or ""
+
+    def _sees_private_data(self) -> bool:
+        """True when the token belongs to the profile being rendered."""
+        login = self._authenticated_login()
+        return bool(login) and login.lower() == self.username.lower()
 
     def _request(self, method: str, url: str, **kwargs) -> requests.Response:
         """Make an HTTP request with rate-limit awareness and retry.
@@ -59,120 +99,164 @@ class GitHubAPI:
             return self._fetch_stats_graphql()
         return self._fetch_stats_rest()
 
-    def _fetch_stats_graphql(self) -> dict:
-        """Fetch stats via GraphQL for accurate counts including private contributions."""
-        query = """
-        query($username: String!) {
-          user(login: $username) {
-            repositoriesContributedTo(contributionTypes: [COMMIT, PULL_REQUEST, ISSUE]) {
-              totalCount
-            }
-            pullRequests {
-              totalCount
-            }
-            issues {
-              totalCount
-            }
-            repositories(ownerAffiliations: OWNER, first: 100) {
-              totalCount
-              nodes {
-                stargazerCount
-              }
-            }
-            contributionsCollection {
-              totalCommitContributions
-              restrictedContributionsCount
-            }
-          }
-        }
-        """
+    def _graphql(self, query: str, variables: dict) -> dict:
+        """Run a GraphQL query, returning the `data.user` payload or None on failure."""
         try:
             resp = self._request(
                 "POST",
                 self.GRAPHQL_URL,
-                json={"query": query, "variables": {"username": self.username}},
+                json={"query": query, "variables": variables},
             )
             resp.raise_for_status()
         except requests.exceptions.Timeout:
-            logger.warning("GraphQL request timed out, falling back to REST.")
-            return self._fetch_stats_rest()
+            logger.warning("GraphQL request timed out.")
+            return None
         except requests.exceptions.HTTPError as e:
-            logger.warning("GraphQL HTTP error (%s), falling back to REST.", e)
-            return self._fetch_stats_rest()
+            logger.warning("GraphQL HTTP error (%s).", e)
+            return None
 
         data = resp.json()
-
         if "errors" in data:
             logger.warning("GraphQL errors: %s", data["errors"])
+            return None
+        return (data.get("data") or {}).get("user")
+
+    PROFILE_QUERY = """
+    query($username: String!, $cursor: String) {
+      user(login: $username) {
+        createdAt
+        pullRequests { totalCount }
+        issues { totalCount }
+        repositories(ownerAffiliations: OWNER, isFork: false, first: 100, after: $cursor) {
+          totalCount
+          pageInfo { hasNextPage endCursor }
+          nodes { stargazerCount }
+        }
+      }
+    }
+    """
+
+    def _fetch_stats_graphql(self) -> dict:
+        """Fetch lifetime stats via GraphQL, including private data when the token allows."""
+        if not self._sees_private_data():
+            logger.warning(
+                "Token does not belong to @%s; private contributions will be excluded.",
+                self.username,
+            )
+
+        user = self._graphql(self.PROFILE_QUERY, {"username": self.username, "cursor": None})
+        if user is None:
             return self._fetch_stats_rest()
 
-        user = data["data"]["user"]
-        contrib = user["contributionsCollection"]
         repos = user["repositories"]
-
         total_stars = sum(n["stargazerCount"] for n in repos["nodes"])
-        total_commits = (
-            contrib["totalCommitContributions"]
-            + contrib["restrictedContributionsCount"]
-        )
+        page = repos["pageInfo"]
+
+        # Star totals need every owned repo, not just the first page
+        while page["hasNextPage"]:
+            nxt = self._graphql(
+                self.PROFILE_QUERY,
+                {"username": self.username, "cursor": page["endCursor"]},
+            )
+            if nxt is None:
+                break
+            total_stars += sum(n["stargazerCount"] for n in nxt["repositories"]["nodes"])
+            page = nxt["repositories"]["pageInfo"]
 
         return {
-            "commits": total_commits,
+            "commits": self._fetch_lifetime_commits(user["createdAt"]),
             "stars": total_stars,
             "prs": user["pullRequests"]["totalCount"],
             "issues": user["issues"]["totalCount"],
             "repos": repos["totalCount"],
         }
 
+    def _contribution_windows(self, created_at: str) -> list:
+        """Return one (from, to) ISO-8601 pair per year since signup.
+
+        contributionsCollection accepts at most a one-year span, so lifetime
+        totals require one window per year.
+        """
+        start = datetime.strptime(created_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        windows = []
+        for year in range(start.year, now.year + 1):
+            frm = max(start, datetime(year, 1, 1, tzinfo=timezone.utc))
+            to = min(now, datetime(year, 12, 31, 23, 59, 59, tzinfo=timezone.utc))
+            if frm < to:
+                windows.append((frm.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                                to.strftime("%Y-%m-%dT%H:%M:%SZ")))
+        return windows
+
+    def _fetch_lifetime_commits(self, created_at: str) -> int:
+        """Sum commit contributions across every year since the account was created."""
+        windows = self._contribution_windows(created_at)
+        if not windows:
+            return 0
+
+        fields = "\n".join(
+            f'          y{i}: contributionsCollection(from: "{frm}", to: "{to}") {{\n'
+            f"            totalCommitContributions\n"
+            f"            restrictedContributionsCount\n"
+            f"          }}"
+            for i, (frm, to) in enumerate(windows)
+        )
+        query = (
+            "query($username: String!) {\n"
+            "  user(login: $username) {\n"
+            f"{fields}\n"
+            "  }\n"
+            "}"
+        )
+
+        user = self._graphql(query, {"username": self.username})
+        if user is None:
+            logger.warning("Lifetime commit query failed; commit count may be incomplete.")
+            return 0
+
+        # restrictedContributionsCount is 0 when the token can already see private repos
+        return sum(
+            c["totalCommitContributions"] + c["restrictedContributionsCount"]
+            for c in user.values()
+        )
+
     def _fetch_stats_rest(self) -> dict:
-        """Fallback: fetch stats via REST API (public data only)."""
-        user_resp = self._request(
-            "GET", f"{self.REST_URL}/users/{self.username}"
-        )
-        user_resp.raise_for_status()
-        user_data = user_resp.json()
+        """Fetch lifetime stats via REST. Public data only, but complete."""
+        logger.info("Using REST (public data only).")
 
-        # Fetch repos to count stars
+        # Non-fork owned repos, matching the GraphQL path and language aggregation
         total_stars = 0
+        repo_count = 0
         for repos in self._paginate_repos():
-            total_stars += sum(r.get("stargazers_count", 0) for r in repos)
-
-        # Estimate commits from events (rough approximation without token)
-        events_resp = self._request(
-            "GET",
-            f"{self.REST_URL}/users/{self.username}/events/public",
-            params={"per_page": 100},
-        )
-        events_resp.raise_for_status()
-        events = events_resp.json()
-        commit_count = sum(
-            len(e.get("payload", {}).get("commits", []))
-            for e in events
-            if e.get("type") == "PushEvent"
-        )
-
-        # Fetch actual PR count via Search API
-        pr_count = self._search_count(f"author:{self.username} type:pr")
-
-        # Fetch actual issue count via Search API
-        issue_count = self._search_count(f"author:{self.username} type:issue")
+            for repo in repos:
+                if repo.get("fork"):
+                    continue
+                repo_count += 1
+                total_stars += repo.get("stargazers_count", 0)
 
         return {
-            "commits": commit_count,
+            "commits": self._search_count("commits", f"author:{self.username}"),
             "stars": total_stars,
-            "prs": pr_count,
-            "issues": issue_count,
-            "repos": user_data.get("public_repos", 0),
+            "prs": self._search_count("issues", f"author:{self.username} type:pr"),
+            "issues": self._search_count("issues", f"author:{self.username} type:issue"),
+            "repos": repo_count,
         }
 
     def _paginate_repos(self):
-        """Yield pages of owned repos from the REST API."""
+        """Yield pages of owned repos, including private ones when the token allows."""
+        if self._sees_private_data():
+            url = f"{self.REST_URL}/user/repos"
+            base_params = {"affiliation": "owner", "visibility": "all"}
+        else:
+            url = f"{self.REST_URL}/users/{self.username}/repos"
+            base_params = {"type": "owner"}
+
         page = 1
         while True:
             repos_resp = self._request(
                 "GET",
-                f"{self.REST_URL}/users/{self.username}/repos",
-                params={"per_page": 100, "page": page, "type": "owner"},
+                url,
+                params={**base_params, "per_page": 100, "page": page},
             )
             repos_resp.raise_for_status()
             repos = repos_resp.json()
@@ -183,12 +267,12 @@ class GitHubAPI:
                 break
             page += 1
 
-    def _search_count(self, query: str) -> int:
+    def _search_count(self, endpoint: str, query: str) -> int:
         """Use the GitHub Search API to get a total_count for a query."""
         try:
             resp = self._request(
                 "GET",
-                f"{self.REST_URL}/search/issues",
+                f"{self.REST_URL}/search/{endpoint}",
                 params={"q": query, "per_page": 1},
             )
             if resp.status_code == 200:

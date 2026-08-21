@@ -29,6 +29,9 @@ jobs:
 
       - name: Generate SVGs
         env:
+          # PROFILE_TOKEN is a PAT (repo + read:user) so private stats are counted.
+          # Falls back to GITHUB_TOKEN, which only sees public data.
+          PROFILE_TOKEN: ${{ secrets.PROFILE_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python -m generator.main
 
