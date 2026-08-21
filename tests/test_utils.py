@@ -11,7 +11,6 @@ from generator.utils import (
     get_language_color,
     resolve_theme,
     spiral_points,
-    wrap_text,
 )
 
 
@@ -71,25 +70,6 @@ class TestCalculateLanguagePercentages:
         langs = {"Python": 100}
         result = calculate_language_percentages(langs, [], 8)
         assert result[0]["color"] == "#3572A5"
-
-
-class TestWrapText:
-    def test_short_text(self):
-        result = wrap_text("hello", 20)
-        assert result == ["hello"]
-
-    def test_word_wrap(self):
-        result = wrap_text("hello world foo bar", 12)
-        assert len(result) >= 2
-        assert all(len(line) <= 15 for line in result)  # reasonable wrapping
-
-    def test_single_long_word(self):
-        result = wrap_text("superlongword", 5)
-        assert result == ["superlongword"]
-
-    def test_empty(self):
-        result = wrap_text("", 20)
-        assert result == []
 
 
 class TestDeterministicRandom:

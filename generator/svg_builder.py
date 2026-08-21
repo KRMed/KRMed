@@ -1,6 +1,6 @@
 """SVG Builder — orchestrator connecting config, stats, and templates."""
 
-from generator.templates import galaxy_header, stats_card, tech_stack, projects_constellation
+from generator.templates import galaxy_header, stats_card, language_composition
 
 
 class SVGBuilder:
@@ -34,19 +34,11 @@ class SVGBuilder:
             theme=self.theme,
         )
 
-    def render_tech_stack(self) -> str:
+    def render_language_composition(self) -> str:
         lang_config = self.config.get("languages", {})
-        return tech_stack.render(
+        return language_composition.render(
             languages=self.languages,
-            galaxy_arms=self.galaxy_arms,
+            stats=self.stats,
             theme=self.theme,
             exclude=lang_config.get("exclude", []),
-            max_display=lang_config.get("max_display", 8),
-        )
-
-    def render_projects_constellation(self) -> str:
-        return projects_constellation.render(
-            projects=self.projects,
-            galaxy_arms=self.galaxy_arms,
-            theme=self.theme,
         )

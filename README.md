@@ -17,31 +17,5 @@
 <br/>
 
 <div align="center">
-  <img src="./assets/generated/tech-stack.svg" width="850" alt="Tech Stack"/>
-</div>
-
-<br/>
-
-<div align="center">
-  <img src="./assets/generated/projects-constellation.svg" width="850" alt="Featured Projects"/>
-</div>
-
-<br/>
-
-<details>
-<summary><strong>More about me</strong></summary>
-
-<br/>
-
-</details>
-
-<br/>
-
-<div align="center">
-  <a href="mailto:kmedeiros.work@gmail.com">
-    <img src="https://img.shields.io/badge/-Email-080c14?style=for-the-badge&logo=gmail&logoColor=00d4ff" alt="Email"/>
-  </a>
-  <a href="https://www.linkedin.com/in/kris-medeiros/">
-    <img src="https://img.shields.io/badge/-LinkedIn-080c14?style=for-the-badge&logo=linkedin&logoColor=a78bfa" alt="LinkedIn"/>
-  </a>
+  <img src="./assets/generated/language-composition.svg" width="850" alt="Language Composition"/>
 </div>

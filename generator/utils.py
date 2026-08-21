@@ -7,6 +7,13 @@ from xml.sax.saxutils import escape as xml_escape
 
 HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 
+# Language bucketing rules — keep the composition legend a stable size
+MIN_LANGUAGE_PCT = 2.0
+LANGUAGE_TOP_N = 7
+
+# WCAG non-text contrast floor for a color swatch against the panel fill
+MIN_SWATCH_CONTRAST = 3.0
+
 # Default deep-space theme palette
 DEFAULT_THEME = {
     "void": "#080c14",
@@ -77,6 +84,13 @@ LANGUAGE_COLORS = {
     "Zig": "#ec915c",
     "Svelte": "#ff3e00",
     "Astro": "#ff5a03",
+    # Official Linguist colors for other common languages, uncomment as needed:
+    # "Jupyter Notebook": "#DA5B0B",
+    # "CMake": "#DA3434",
+    # "Batchfile": "#C1F12E",
+    # "YAML": "#cb171e",
+    # "Markdown": "#083fa1",
+    # "TeX": "#3D6117",
 }
 
 # SVG icon paths (16x16 viewBox)
@@ -95,13 +109,12 @@ STAR_ICON = (
 )
 
 PR_ICON = (
-    '<path d="M5 3.254V3.25v.005a.75.75 0 1 1 0-.005zm6.5 8a.75.75 0 1 '
-    '1 0 1.5.75.75 0 0 1 0-1.5zM5 12.75a.75.75 0 1 1 0 1.5.75.75 0 0 '
-    '1 0-1.5zm-1.5.75a1.5 1.5 0 1 0 1.5 1.5v-8.5a1.5 1.5 0 1 0-1.5-1.5v8.5a1.5 '
-    '1.5 0 0 0 0 0zm8.5-2.5a1.5 1.5 0 0 0-1.5 1.5 1.5 1.5 0 1 0 3 0v-3.133l.025-'
-    '.05A3.252 3.252 0 0 0 11 5.25V3.5h1.25a.75.75 0 0 0 .53-1.28l-2-2a.75.75 0 '
-    '0 0-1.06 0l-2 2A.75.75 0 0 0 8.25 3.5H9.5v1.75a1.75 1.75 0 0 0 1.75 1.75h.244a1.75 '
-    '1.75 0 0 1 1.006.319V11a1.5 1.5 0 0 0-1.5-1.5z"/>'
+    '<path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 '
+    '0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 '
+    '.854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 '
+    '0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 '
+    '0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 '
+    '0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/>'
 )
 
 ISSUE_ICON = (
@@ -181,6 +194,102 @@ def calculate_language_percentages(
     ]
 
 
+def _hex_to_rgb(hex_color: str) -> tuple:
+    """Convert '#rrggbb' to an (r, g, b) tuple of 0-255 ints."""
+    h = hex_color.lstrip("#")
+    return tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
+
+
+def _rgb_to_hex(rgb: tuple) -> str:
+    """Convert an (r, g, b) tuple of 0-255 ints to '#rrggbb'."""
+    return "#{:02x}{:02x}{:02x}".format(*(max(0, min(255, round(c))) for c in rgb))
+
+
+def _relative_luminance(hex_color: str) -> float:
+    """WCAG relative luminance of a hex color."""
+    channels = []
+    for c in _hex_to_rgb(hex_color):
+        s = c / 255
+        channels.append(s / 12.92 if s <= 0.03928 else ((s + 0.055) / 1.055) ** 2.4)
+    r, g, b = channels
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def contrast_ratio(color_a: str, color_b: str) -> float:
+    """WCAG contrast ratio between two hex colors (1.0 to 21.0)."""
+    la, lb = _relative_luminance(color_a), _relative_luminance(color_b)
+    lighter, darker = max(la, lb), min(la, lb)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def lighten(hex_color: str, amount: float) -> str:
+    """Mix a hex color toward white by `amount` (0.0 = unchanged, 1.0 = white)."""
+    return _rgb_to_hex(tuple(c + (255 - c) * amount for c in _hex_to_rgb(hex_color)))
+
+
+def ensure_contrast(
+    hex_color: str, background: str, min_ratio: float = MIN_SWATCH_CONTRAST
+) -> str:
+    """Lighten a color until it clears `min_ratio` against `background`."""
+    step = 0.05
+    amount = 0.0
+    current = hex_color
+    while contrast_ratio(current, background) < min_ratio and amount < 1.0:
+        amount += step
+        current = lighten(hex_color, amount)
+    return current
+
+
+def bucket_languages(languages: dict, exclude: list) -> list:
+    """Bucket language percentages into a fixed-size, layout-stable list.
+
+    Languages below MIN_LANGUAGE_PCT, plus anything past LANGUAGE_TOP_N, fold
+    into a trailing "Other" entry labelled with its constituent count.
+
+    Args:
+        languages: dict mapping language name to byte count
+        exclude: list of language names to exclude
+
+    Returns:
+        list of dicts with keys: name, percentage, color, folded.
+        `folded` is 0 for a real language and the constituent count for "Other".
+        Percentages sum to 100.0 when an "Other" entry is present.
+    """
+    ranked = calculate_language_percentages(languages, exclude, len(languages))
+    if not ranked:
+        return []
+
+    kept = [lang for lang in ranked if lang["percentage"] >= MIN_LANGUAGE_PCT]
+    folded = [lang for lang in ranked if lang["percentage"] < MIN_LANGUAGE_PCT]
+
+    if len(kept) > LANGUAGE_TOP_N:
+        folded = kept[LANGUAGE_TOP_N:] + folded
+        kept = kept[:LANGUAGE_TOP_N]
+
+    entries = [
+        {
+            "name": lang["name"],
+            "percentage": lang["percentage"],
+            "color": lang["color"],
+            "folded": 0,
+        }
+        for lang in kept
+    ]
+
+    if folded:
+        remainder = round(100.0 - sum(e["percentage"] for e in entries), 1)
+        entries.append(
+            {
+                "name": f"Other ({len(folded)})",
+                "percentage": max(0.0, remainder),
+                "color": None,
+                "folded": len(folded),
+            }
+        )
+
+    return entries
+
+
 def format_number(n: int) -> str:
     """Format a number for display. 1234 -> '1.2k', 1000000 -> '1.0M'."""
     if n >= 1_000_000:
@@ -188,22 +297,6 @@ def format_number(n: int) -> str:
     if n >= 1_000:
         return f"{n / 1_000:.1f}k"
     return str(n)
-
-
-def wrap_text(text: str, max_chars: int) -> list:
-    """Split text into lines that fit within max_chars width."""
-    words = text.split()
-    lines = []
-    current = ""
-    for word in words:
-        if current and len(current) + 1 + len(word) > max_chars:
-            lines.append(current)
-            current = word
-        else:
-            current = f"{current} {word}" if current else word
-    if current:
-        lines.append(current)
-    return lines
 
 
 def spiral_points(
@@ -257,15 +350,3 @@ def deterministic_random(seed_str: str, count: int, min_val: float, max_val: flo
 def esc(text: str) -> str:
     """Escape text for safe embedding in SVG/XML."""
     return xml_escape(str(text), entities={'"': "&quot;", "'": "&apos;"})
-
-
-def svg_arc_path(cx, cy, r, start_deg, end_deg):
-    """Generate SVG path 'd' attribute for a filled arc sector (pie slice)."""
-    start_rad = math.radians(start_deg - 90)  # -90 to start from top
-    end_rad = math.radians(end_deg - 90)
-    x1 = cx + r * math.cos(start_rad)
-    y1 = cy + r * math.sin(start_rad)
-    x2 = cx + r * math.cos(end_rad)
-    y2 = cy + r * math.sin(end_rad)
-    large_arc = 1 if (end_deg - start_deg) > 180 else 0
-    return f"M {cx} {cy} L {x1:.1f} {y1:.1f} A {r} {r} 0 {large_arc} 1 {x2:.1f} {y2:.1f} Z"
