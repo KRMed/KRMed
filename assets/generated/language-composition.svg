@@ -26,10 +26,10 @@
 
   <!-- Band 1: stacked language bar -->
     <g clip-path="url(#lang-bar-clip)">
-      <rect x="30.00" y="59" width="559.48" height="12" fill="#3572A5" opacity="0.85"/>
-      <rect x="592.48" y="59" width="104.44" height="12" fill="#f1e05a" opacity="0.85"/>
-      <rect x="699.92" y="59" width="68.89" height="12" fill="#3178c6" opacity="0.85"/>
-      <rect x="771.81" y="59" width="48.19" height="12" fill="#00ADD8" opacity="0.85"/>
+      <rect x="30.00" y="59" width="569.75" height="12" fill="#3572A5" opacity="0.85"/>
+      <rect x="602.75" y="59" width="99.70" height="12" fill="#f1e05a" opacity="0.85"/>
+      <rect x="705.45" y="59" width="65.73" height="12" fill="#3178c6" opacity="0.85"/>
+      <rect x="774.18" y="59" width="45.82" height="12" fill="#00ADD8" opacity="0.85"/>
     </g>
 
   <!-- Band 2: legend -->
@@ -37,25 +37,25 @@
       <rect x="71.15" y="89" width="115.20" height="18" rx="9" ry="9" fill="#3572A5" opacity="0.12"/>
       <rect x="79.15" y="94.00" width="12" height="8" rx="3" ry="3" fill="#3572A5"/>
       <text x="99.15" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">Python</text>
-      <text x="145.35" y="101" fill="#64748b" font-size="11" font-family="monospace">71.2%</text>
+      <text x="145.35" y="101" fill="#64748b" font-size="11" font-family="monospace">72.5%</text>
     </g>
     <g>
       <rect x="255.45" y="89" width="141.60" height="18" rx="9" ry="9" fill="#f1e05a" opacity="0.12"/>
       <rect x="263.45" y="94.00" width="12" height="8" rx="3" ry="3" fill="#f1e05a"/>
       <text x="283.45" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">JavaScript</text>
-      <text x="356.05" y="101" fill="#64748b" font-size="11" font-family="monospace">13.6%</text>
+      <text x="356.05" y="101" fill="#64748b" font-size="11" font-family="monospace">13.0%</text>
     </g>
     <g>
       <rect x="456.25" y="89" width="135.00" height="18" rx="9" ry="9" fill="#3178c6" opacity="0.12"/>
       <rect x="464.25" y="94.00" width="12" height="8" rx="3" ry="3" fill="#3178c6"/>
       <text x="484.25" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">TypeScript</text>
-      <text x="556.85" y="101" fill="#64748b" font-size="11" font-family="monospace">9.1%</text>
+      <text x="556.85" y="101" fill="#64748b" font-size="11" font-family="monospace">8.7%</text>
     </g>
     <g>
       <rect x="680.15" y="89" width="82.20" height="18" rx="9" ry="9" fill="#00ADD8" opacity="0.12"/>
       <rect x="688.15" y="94.00" width="12" height="8" rx="3" ry="3" fill="#00ADD8"/>
       <text x="708.15" y="101" fill="#cbd5e1" font-size="11" font-family="monospace">Go</text>
-      <text x="727.95" y="101" fill="#64748b" font-size="11" font-family="monospace">6.1%</text>
+      <text x="727.95" y="101" fill="#64748b" font-size="11" font-family="monospace">5.8%</text>
     </g>
 
   <!-- Band 3: activity -->
@@ -66,8 +66,8 @@
           <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 2.5a4.5 4.5 0 0 1 4.473 4H14.5a.5.5 0 0 1 0 1h-2.027A4.5 4.5 0 0 1 8 12.5a4.5 4.5 0 0 1-4.473-4H1.5a.5.5 0 0 1 0-1h2.027A4.5 4.5 0 0 1 8 3.5zm0 1.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>
         </svg>
       </g>
-      <text x="0" y="2" text-anchor="middle" fill="#00f5ff" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">659</text>
-      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">659</text>
+      <text x="0" y="2" text-anchor="middle" fill="#00f5ff" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">661</text>
+      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">661</text>
       <text x="0" y="20" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace" letter-spacing="1">Commits</text>
     </g>
     <g class="metric-cell" transform="translate(326.25, 183)">
@@ -76,8 +76,8 @@
           <path d="M1.5 3.25a2.25 2.25 0 1 1 3 2.122v5.256a2.251 2.251 0 1 1-1.5 0V5.372A2.25 2.25 0 0 1 1.5 3.25Zm5.677-.177L9.573.677A.25.25 0 0 1 10 .854V2.5h1A2.5 2.5 0 0 1 13.5 5v5.628a2.251 2.251 0 1 1-1.5 0V5a1 1 0 0 0-1-1h-1v1.646a.25.25 0 0 1-.427.177L7.177 3.427a.25.25 0 0 1 0-.354ZM3.75 2.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm0 9.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm8.25.75a.75.75 0 1 0 1.5 0 .75.75 0 0 0-1.5 0Z"/>
         </svg>
       </g>
-      <text x="0" y="2" text-anchor="middle" fill="#8b5cf6" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">100</text>
-      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">100</text>
+      <text x="0" y="2" text-anchor="middle" fill="#8b5cf6" font-size="28" font-weight="bold" font-family="sans-serif" opacity="0.35" filter="url(#num-glow)">101</text>
+      <text x="0" y="2" text-anchor="middle" fill="#f8fafc" font-size="28" font-weight="bold" font-family="sans-serif">101</text>
       <text x="0" y="20" text-anchor="middle" fill="#64748b" font-size="11" font-family="monospace" letter-spacing="1">PRs</text>
     </g>
     <g class="metric-cell" transform="translate(523.75, 183)">
